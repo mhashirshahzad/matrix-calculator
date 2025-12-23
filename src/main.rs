@@ -40,6 +40,24 @@ impl eframe::App for MatrixGui {
                     }
                 }
             });
+            ui.separator();
+            ui.horizontal(|ui| {
+                if ui.button("- Row").clicked() {
+                    if self.app.rows > 0 {
+                        self.app.rows -= 1;
+                        self.app.cells.pop(); // remove the last row
+                    }
+                }
+
+                if ui.button("- Col").clicked() {
+                    if self.app.cols > 0 {
+                        self.app.cols -= 1;
+                        for row in &mut self.app.cells {
+                            row.pop(); // remove the last column in each row
+                        }
+                    }
+                }
+            });
 
             ui.separator();
             ui.label("Matrix:");

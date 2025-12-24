@@ -36,7 +36,10 @@ impl eframe::App for MatrixGui {
                     ui.heading("Matrix Editor");
                     self.spawn_matrices_ui(ui);
                     ui.separator();
+
                     self.show_transposes(ui);
+                    ui.separator();
+                    self.show_arithmetic_operations(ui);
                 });
         });
     }
@@ -77,6 +80,114 @@ impl MatrixGui {
             }
             Err(e) => {
                 ui.colored_label(egui::Color32::RED, e);
+            }
+        }
+    }
+
+    fn show_arithmetic_operations(&self, ui: &mut egui::Ui) {
+        ui.label("A + B:");
+
+        if let (Ok(m_a), Ok(m_b)) = (
+            self.app.get_matrix(&self.app.matrix_a),
+            self.app.get_matrix(&self.app.matrix_b),
+        ) {
+            match m_a + m_b {
+                Ok(m_r) => {
+                    for row in &m_r.data {
+                        ui.horizontal(|ui| {
+                            for v in row {
+                                ui.label(v);
+                            }
+                        });
+                    }
+                }
+                Err(e) => {
+                    ui.label(e);
+                }
+            }
+        }
+        ui.label("A - B:");
+
+        if let (Ok(m_a), Ok(m_b)) = (
+            self.app.get_matrix(&self.app.matrix_a),
+            self.app.get_matrix(&self.app.matrix_b),
+        ) {
+            match m_a - m_b {
+                Ok(m_r) => {
+                    for row in &m_r.data {
+                        ui.horizontal(|ui| {
+                            for v in row {
+                                ui.label(v);
+                            }
+                        });
+                    }
+                }
+                Err(e) => {
+                    ui.label(e);
+                }
+            }
+        }
+        ui.label("B - A:");
+
+        if let (Ok(m_a), Ok(m_b)) = (
+            self.app.get_matrix(&self.app.matrix_a),
+            self.app.get_matrix(&self.app.matrix_b),
+        ) {
+            match m_b - m_a {
+                Ok(m_r) => {
+                    for row in &m_r.data {
+                        ui.horizontal(|ui| {
+                            for v in row {
+                                ui.label(v);
+                            }
+                        });
+                    }
+                }
+                Err(e) => {
+                    ui.label(e);
+                }
+            }
+        }
+        ui.label("A x B:");
+
+        if let (Ok(m_a), Ok(m_b)) = (
+            self.app.get_matrix(&self.app.matrix_a),
+            self.app.get_matrix(&self.app.matrix_b),
+        ) {
+            match m_a * m_b {
+                Ok(m_r) => {
+                    for row in &m_r.data {
+                        ui.horizontal(|ui| {
+                            for v in row {
+                                ui.label(v);
+                            }
+                        });
+                    }
+                }
+                Err(e) => {
+                    ui.label(e);
+                }
+            }
+        }
+        ui.label("B x A:");
+
+        if let (Ok(m_a), Ok(m_b)) = (
+            self.app.get_matrix(&self.app.matrix_a),
+            self.app.get_matrix(&self.app.matrix_b),
+        ) {
+            match m_b * m_a {
+                Ok(m_r) => {
+                    for row in &m_r.data {
+                        ui.horizontal(|ui| {
+                            for v in row {
+                                ui.label(v);
+                            }
+                        });
+                    }
+                }
+                Err(e) => {
+                    ui.label(e);
+                }
             }
         }
     }

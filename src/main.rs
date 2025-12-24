@@ -2,10 +2,14 @@ mod app;
 mod matrix;
 
 use app::App;
-use eframe::egui;
+use eframe::egui::{self, Ui};
+
+#[allow(unused)]
+const ICON: &[u8; 1676] = include_bytes!("../assets/matrix-logo.svg");
 
 fn main() -> eframe::Result<()> {
-    let options = eframe::NativeOptions::default();
+    let mut options = eframe::NativeOptions::default();
+    options.viewport = options.viewport.with_app_id("Matrix Calculator");
     eframe::run_native(
         "Matrix Transpose",
         options,
@@ -26,72 +30,108 @@ impl Default for MatrixGui {
 impl eframe::App for MatrixGui {
     fn update(&mut self, ctx: &egui::Context, _: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Matrix Editor");
-
-            ui.horizontal(|ui| {
-                if ui.button("+ Row").clicked() {
-                    self.app.matrix_a.rows += 1;
-                    self.app
-                        .matrix_a
-                        .data
-                        .push(vec!["0".into(); self.app.matrix_a.cols]);
-                }
-                if ui.button("+ Col").clicked() {
-                    self.app.matrix_a.cols += 1;
-                    for row in &mut self.app.matrix_a.data {
-                        row.push("0".into());
-                    }
-                }
-            });
-            ui.separator();
-            ui.horizontal(|ui| {
-                if ui.button("- Row").clicked() {
-                    if self.app.matrix_a.rows > 1 {
-                        self.app.matrix_a.rows -= 1;
-                        self.app.matrix_a.data.pop(); // remove the last row
-                    }
-                }
-
-                if ui.button("- Col").clicked() {
-                    if self.app.matrix_a.cols > 1 {
-                        self.app.matrix_a.cols -= 1;
-                        for row in &mut self.app.matrix_a.data {
-                            row.pop(); // remove the last column in each row
-                        }
-                    }
-                }
-            });
-
-            ui.separator();
-            ui.label("Matrix A :");
-
-            for i in 0..self.app.matrix_a.rows {
-                ui.horizontal(|ui| {
-                    for j in 0..self.app.matrix_a.cols {
-                        ui.text_edit_singleline(&mut self.app.matrix_a.data[i][j]);
-                    }
+            egui::ScrollArea::both()
+                .auto_shrink([false; 2])
+                .show(ui, |ui| {
+                    ui.heading("Matrix Editor");
+                    self.spawn_matrices_ui(ui);
+                    ui.separator();
+                    self.show_transposes(ui);
                 });
-            }
-            ui.separator();
+        });
+    }
+}
 
-            ui.separator();
-            ui.label("Transpose:");
+impl MatrixGui {
+    fn show_transposes(&self, ui: &mut egui::Ui) {
+        ui.label("Transpose of matrix A:");
 
-            match self.app.to_matrix() {
-                Ok(m) => {
-                    let t = matrix::transpose::transpose(&m);
-                    for row in t.data {
-                        ui.horizontal(|ui| {
-                            for v in row {
-                                ui.label(format!("{v}"));
-                            }
-                        });
-                    }
+        match self.app.get_matrix(&self.app.matrix_a) {
+            Ok(m) => {
+                let t = matrix::transpose::transpose(&m);
+
+                for row in t.data {
+                    ui.horizontal(|ui| {
+                        for v in row {
+                            ui.label(format!("{v}"));
+                        }
+                    });
                 }
-                Err(e) => {
-                    ui.colored_label(egui::Color32::RED, e);
+            }
+            Err(e) => {
+                ui.colored_label(egui::Color32::RED, e);
+            }
+        }
+        ui.label("Transpose of matrix B:");
+
+        match self.app.get_matrix(&self.app.matrix_b) {
+            Ok(m) => {
+                let t = matrix::transpose::transpose(&m);
+                for row in t.data {
+                    ui.horizontal(|ui| {
+                        for v in row {
+                            ui.label(format!("{v}"));
+                        }
+                    });
+                }
+            }
+            Err(e) => {
+                ui.colored_label(egui::Color32::RED, e);
+            }
+        }
+    }
+
+    fn edit_matrix_ui(ui: &mut Ui, label: &str, matrix: &mut matrix::types::Matrix) {
+        ui.label(label);
+
+        ui.horizontal(|ui| {
+            if ui.button("+ Row").clicked() {
+                matrix.rows += 1;
+                matrix.data.push(vec!["0".into(); matrix.cols]);
+            }
+            if ui.button("+ Col").clicked() {
+                matrix.cols += 1;
+                for row in &mut matrix.data {
+                    row.push("0".into());
+                }
+            }
+            if ui.button("- Row").clicked() {
+                if matrix.rows > 1 {
+                    matrix.rows -= 1;
+                    matrix.data.pop();
+                }
+            }
+            if ui.button("- Col").clicked() {
+                if matrix.cols > 1 {
+                    matrix.cols -= 1;
+                    for row in &mut matrix.data {
+                        row.pop();
+                    }
                 }
             }
         });
+
+        for i in 0..matrix.rows {
+            ui.horizontal(|ui| {
+                for j in 0..matrix.cols {
+                    ui.text_edit_singleline(&mut matrix.data[i][j]);
+                }
+            });
+        }
+    }
+
+    pub fn spawn_matrices_ui(&mut self, ui: &mut Ui) {
+        // Scoped borrows to satisfy Rust
+        {
+            let matrix_a = &mut self.app.matrix_a;
+            Self::edit_matrix_ui(ui, "Matrix A:", matrix_a);
+        }
+
+        ui.separator();
+
+        {
+            let matrix_b = &mut self.app.matrix_b;
+            Self::edit_matrix_ui(ui, "Matrix B:", matrix_b);
+        }
     }
 }

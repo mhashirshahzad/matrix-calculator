@@ -7,30 +7,34 @@ pub struct App {
 
 impl App {
     pub fn new() -> Self {
-        let rows = 2;
-        let cols = 3;
+        let a_rows = 2;
+        let a_cols = 3;
+
+        let b_rows = 3;
+        let b_cols = 2;
 
         Self {
             matrix_a: Matrix {
-                rows,
-                cols,
-                data: vec![vec!["0".into(); cols]; rows],
+                rows: a_rows,
+                cols: a_cols,
+                data: vec![vec!["0".into(); a_cols]; a_rows],
             },
 
             matrix_b: Matrix {
-                rows,
-                cols,
+                rows: b_rows,
+                cols: b_cols,
 
-                data: vec![vec!["0".into(); cols]; rows],
+                data: vec![vec!["0".into(); b_cols]; b_rows],
             },
         }
     }
 
-    pub fn to_matrix(&self) -> Result<Matrix, &'static str> {
-        let mut data = Vec::with_capacity(self.matrix_a.rows);
+    pub fn get_matrix(&self, m: &Matrix) -> Result<Matrix, &'static str> {
+        println!("[App] Get Matrix called: {}", m);
+        let mut data = Vec::with_capacity(m.rows);
 
         for row in &self.matrix_a.data {
-            let mut r = Vec::with_capacity(self.matrix_a.cols);
+            let mut r = Vec::with_capacity(m.cols);
             for cell in row {
                 r.push(cell.into());
             }

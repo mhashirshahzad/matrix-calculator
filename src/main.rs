@@ -30,12 +30,15 @@ impl eframe::App for MatrixGui {
 
             ui.horizontal(|ui| {
                 if ui.button("+ Row").clicked() {
-                    self.app.rows += 1;
-                    self.app.cells.push(vec!["0".into(); self.app.cols]);
+                    self.app.matrix_a.rows += 1;
+                    self.app
+                        .matrix_a
+                        .data
+                        .push(vec!["0".into(); self.app.matrix_a.cols]);
                 }
                 if ui.button("+ Col").clicked() {
-                    self.app.cols += 1;
-                    for row in &mut self.app.cells {
+                    self.app.matrix_a.cols += 1;
+                    for row in &mut self.app.matrix_a.data {
                         row.push("0".into());
                     }
                 }
@@ -43,16 +46,16 @@ impl eframe::App for MatrixGui {
             ui.separator();
             ui.horizontal(|ui| {
                 if ui.button("- Row").clicked() {
-                    if self.app.rows > 0 {
-                        self.app.rows -= 1;
-                        self.app.cells.pop(); // remove the last row
+                    if self.app.matrix_a.rows > 1 {
+                        self.app.matrix_a.rows -= 1;
+                        self.app.matrix_a.data.pop(); // remove the last row
                     }
                 }
 
                 if ui.button("- Col").clicked() {
-                    if self.app.cols > 0 {
-                        self.app.cols -= 1;
-                        for row in &mut self.app.cells {
+                    if self.app.matrix_a.cols > 1 {
+                        self.app.matrix_a.cols -= 1;
+                        for row in &mut self.app.matrix_a.data {
                             row.pop(); // remove the last column in each row
                         }
                     }
@@ -60,15 +63,16 @@ impl eframe::App for MatrixGui {
             });
 
             ui.separator();
-            ui.label("Matrix:");
+            ui.label("Matrix A :");
 
-            for i in 0..self.app.rows {
+            for i in 0..self.app.matrix_a.rows {
                 ui.horizontal(|ui| {
-                    for j in 0..self.app.cols {
-                        ui.text_edit_singleline(&mut self.app.cells[i][j]);
+                    for j in 0..self.app.matrix_a.cols {
+                        ui.text_edit_singleline(&mut self.app.matrix_a.data[i][j]);
                     }
                 });
             }
+            ui.separator();
 
             ui.separator();
             ui.label("Transpose:");

@@ -1,9 +1,8 @@
 use crate::matrix::{transpose::transpose, types::Matrix};
 
 pub struct App {
-    pub rows: usize,
-    pub cols: usize,
-    pub cells: Vec<Vec<String>>,
+    pub matrix_a: Matrix<usize>,
+    pub matrix_b: Matrix<usize>,
 }
 
 impl App {
@@ -12,19 +11,28 @@ impl App {
         let cols = 3;
 
         Self {
-            rows,
-            cols,
-            cells: vec![vec!["0".into(); cols]; rows],
+            matrix_a: Matrix {
+                rows,
+                cols,
+                data: vec![vec!["0".into(); cols]; rows],
+            },
+
+            matrix_b: Matrix {
+                rows,
+                cols,
+
+                data: vec![vec!["0".into(); cols]; rows],
+            },
         }
     }
 
     pub fn to_matrix(&self) -> Result<Matrix<f64>, &'static str> {
-        let mut data = Vec::with_capacity(self.rows);
+        let mut data = Vec::with_capacity(self.matrix_a.rows);
 
-        for row in &self.cells {
-            let mut r = Vec::with_capacity(self.cols);
+        for row in &self.matrix_a.data {
+            let mut r = Vec::with_capacity(self.matrix_a.cols);
             for cell in row {
-                r.push(cell.parse::<f64>().map_err(|_| "invalid number")?);
+                r.push(*cell as f64);
             }
             data.push(r);
         }

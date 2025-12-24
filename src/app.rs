@@ -30,10 +30,9 @@ impl App {
     }
 
     pub fn get_matrix(&self, m: &Matrix) -> Result<Matrix, &'static str> {
-        println!("[App] Get Matrix called: {}", m);
         let mut data = Vec::with_capacity(m.rows);
 
-        for row in &self.matrix_a.data {
+        for row in &m.data {
             let mut r = Vec::with_capacity(m.cols);
             for cell in row {
                 r.push(cell.into());

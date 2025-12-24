@@ -1,4 +1,5 @@
 use std::fmt;
+use std::ops::{Add, Mul, Sub};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Matrix {
@@ -53,5 +54,106 @@ impl fmt::Display for Matrix {
         }
 
         Ok(())
+    }
+}
+
+impl Matrix {
+    /// Helper to convert a Matrix of Strings to f64 values
+    fn to_f64(&self) -> Result<Vec<Vec<f64>>, &'static str> {
+        let mut result = Vec::with_capacity(self.rows);
+        for row in &self.data {
+            let mut r = Vec::with_capacity(self.cols);
+            for cell in row {
+                r.push(cell.parse::<f64>().map_err(|_| "invalid number")?);
+            }
+            result.push(r);
+        }
+        Ok(result)
+    }
+
+    /// Helper to create Matrix from Vec<Vec<f64>>
+    fn from_f64(data: Vec<Vec<f64>>) -> Matrix {
+        let rows = data.len();
+        let cols = if rows > 0 { data[0].len() } else { 0 };
+        let string_data = data
+            .into_iter()
+            .map(|r| r.into_iter().map(|v| v.to_string()).collect())
+            .collect();
+        Matrix {
+            rows,
+            cols,
+            data: string_data,
+        }
+    }
+}
+
+// Addition
+impl Add for Matrix {
+    type Output = Result<Matrix, &'static str>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        if self.rows != rhs.rows || self.cols != rhs.cols {
+            return Err("Matrix dimensions do not match for addition");
+        }
+
+        let a = self.to_f64()?;
+        let b = rhs.to_f64()?;
+        let mut data = vec![vec![0.0; self.cols]; self.rows];
+
+        for i in 0..self.rows {
+            for j in 0..self.cols {
+                data[i][j] = a[i][j] + b[i][j];
+            }
+        }
+
+        Ok(Matrix::from_f64(data))
+    }
+}
+
+// Subtraction
+impl Sub for Matrix {
+    type Output = Result<Matrix, &'static str>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        if self.rows != rhs.rows || self.cols != rhs.cols {
+            return Err("Matrix dimensions do not match for subtraction");
+        }
+
+        let a = self.to_f64()?;
+        let b = rhs.to_f64()?;
+        let mut data = vec![vec![0.0; self.cols]; self.rows];
+
+        for i in 0..self.rows {
+            for j in 0..self.cols {
+                data[i][j] = a[i][j] - b[i][j];
+            }
+        }
+
+        Ok(Matrix::from_f64(data))
+    }
+}
+
+// Multiplication
+impl Mul for Matrix {
+    type Output = Result<Matrix, &'static str>;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        if self.cols != rhs.rows {
+            return Err("Matrix dimensions do not match for multiplication");
+        }
+
+        let a = self.to_f64()?;
+        let b = rhs.to_f64()?;
+        let mut data = vec![vec![0.0; rhs.cols]; self.rows];
+
+        for i in 0..self.rows {
+            for j in 0..rhs.cols {
+                for k in 0..self.cols {
+                    data[i][j] += a[i][k] * b[k][j];
+                }
+            }
+        }
+
+        Ok(Matrix::from_f64(data))
     }
 }

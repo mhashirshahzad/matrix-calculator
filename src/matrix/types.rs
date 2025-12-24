@@ -1,13 +1,14 @@
 use std::fmt;
+
 #[derive(Debug, Clone, PartialEq)]
-pub struct Matrix<T> {
+pub struct Matrix {
     pub rows: usize,
     pub cols: usize,
-    pub data: Vec<Vec<T>>,
+    pub data: Vec<Vec<String>>,
 }
 
-impl<T> Matrix<T> {
-    pub fn new(data: Vec<Vec<T>>) -> Result<Self, &'static str> {
+impl Matrix {
+    pub fn new(data: Vec<Vec<String>>) -> Result<Self, &'static str> {
         let rows = data.len();
         let cols = data.get(0).map_or(0, |r| r.len());
 
@@ -19,7 +20,7 @@ impl<T> Matrix<T> {
     }
 }
 
-impl<T: fmt::Display> fmt::Display for Matrix<T> {
+impl fmt::Display for Matrix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "\n")?; // new line to make it look good
 
@@ -27,26 +28,9 @@ impl<T: fmt::Display> fmt::Display for Matrix<T> {
             return writeln!(f, "[]");
         }
 
-        /* 1. Convert all numbers to strings */
-        let strings: Vec<Vec<String>> = self
-            .data
-            .iter()
-            .map(|row| {
-                row.iter()
-                    .map(|v| {
-                        format!("{}", v)
-                            .trim_end_matches('0')
-                            .trim_end_matches('.')
-                            .to_string()
-                    })
-                    .collect()
-            })
-            .collect();
-
         /* 2. Compute max width of each column */
-
         let mut col_widths = vec![0; self.cols];
-        for row in &strings {
+        for row in &self.data {
             for (j, cell) in row.iter().enumerate() {
                 col_widths[j] = col_widths[j].max(cell.len());
             }
@@ -63,7 +47,7 @@ impl<T: fmt::Display> fmt::Display for Matrix<T> {
 
             write!(f, "{left} ")?;
             for j in 0..self.cols {
-                write!(f, "{:>width$} ", strings[i][j], width = col_widths[j])?;
+                write!(f, "{:>width$} ", self.data[i][j], width = col_widths[j])?;
             }
             writeln!(f, "{right}")?;
         }

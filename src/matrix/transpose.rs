@@ -1,6 +1,6 @@
 use super::types::Matrix;
 
-pub fn transpose<T: Clone>(matrix: &Matrix<T>) -> Matrix<T> {
+pub fn transpose(matrix: &Matrix) -> Matrix {
     let mut result = Vec::with_capacity(matrix.cols);
 
     for j in 0..matrix.cols {

@@ -1,8 +1,8 @@
 use crate::matrix::{transpose::transpose, types::Matrix};
 
 pub struct App {
-    pub matrix_a: Matrix<usize>,
-    pub matrix_b: Matrix<usize>,
+    pub matrix_a: Matrix,
+    pub matrix_b: Matrix,
 }
 
 impl App {
@@ -26,13 +26,13 @@ impl App {
         }
     }
 
-    pub fn to_matrix(&self) -> Result<Matrix<f64>, &'static str> {
+    pub fn to_matrix(&self) -> Result<Matrix, &'static str> {
         let mut data = Vec::with_capacity(self.matrix_a.rows);
 
         for row in &self.matrix_a.data {
             let mut r = Vec::with_capacity(self.matrix_a.cols);
             for cell in row {
-                r.push(*cell as f64);
+                r.push(cell.into());
             }
             data.push(r);
         }

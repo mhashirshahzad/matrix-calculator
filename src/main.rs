@@ -38,8 +38,8 @@ impl eframe::App for MatrixGui {
                     ui.separator();
 
                     self.show_transposes(ui);
-                    ui.separator();
                     self.show_arithmetic_operations(ui);
+                    self.show_determinants(ui);
                 });
         });
     }
@@ -78,6 +78,39 @@ impl MatrixGui {
                     });
                 }
             }
+            Err(e) => {
+                ui.colored_label(egui::Color32::RED, e);
+            }
+        }
+    }
+    fn show_determinants(&self, ui: &mut egui::Ui) {
+        ui.label("Determinant of matrix A:");
+
+        match self.app.get_matrix(&self.app.matrix_a) {
+            Ok(m) => match m.determinant() {
+                Ok(det) => {
+                    ui.label(format!("{det}"));
+                }
+                Err(e) => {
+                    ui.colored_label(egui::Color32::RED, e);
+                }
+            },
+            Err(e) => {
+                ui.colored_label(egui::Color32::RED, e);
+            }
+        }
+
+        ui.label("Determinant of matrix B:");
+
+        match self.app.get_matrix(&self.app.matrix_b) {
+            Ok(m) => match m.determinant() {
+                Ok(det) => {
+                    ui.label(format!("{det}"));
+                }
+                Err(e) => {
+                    ui.colored_label(egui::Color32::RED, e);
+                }
+            },
             Err(e) => {
                 ui.colored_label(egui::Color32::RED, e);
             }

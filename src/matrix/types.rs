@@ -157,3 +157,59 @@ impl Mul for Matrix {
         Ok(Matrix::from_f64(data))
     }
 }
+
+impl Matrix {
+    pub fn determinant(&self) -> Result<f64, &'static str> {
+        if self.rows != self.cols {
+            return Err("determinant is only defined for square matrices");
+        }
+
+        let n = self.rows;
+
+        // Parse strings into f64 matrix
+        let mut a: Vec<Vec<f64>> = self
+            .data
+            .iter()
+            .map(|row| {
+                row.iter()
+                    .map(|s| s.parse::<f64>().map_err(|_| "invalid number"))
+                    .collect::<Result<Vec<_>, _>>()
+            })
+            .collect::<Result<_, _>>()?;
+
+        let mut det = 1.0;
+
+        for i in 0..n {
+            // Pivot search
+            let mut pivot = i;
+            for r in i..n {
+                if a[r][i].abs() > a[pivot][i].abs() {
+                    pivot = r;
+                }
+            }
+
+            // Singular matrix
+            if a[pivot][i] == 0.0 {
+                return Ok(0.0);
+            }
+
+            // Row swap changes determinant sign
+            if pivot != i {
+                a.swap(pivot, i);
+                det = -det;
+            }
+
+            det *= a[i][i];
+
+            // Normalize and eliminate
+            for r in (i + 1)..n {
+                let factor = a[r][i] / a[i][i];
+                for c in i..n {
+                    a[r][c] -= factor * a[i][c];
+                }
+            }
+        }
+
+        Ok(det)
+    }
+}

@@ -3,13 +3,16 @@ mod matrix;
 
 use app::App;
 use eframe::egui::{self, Ui};
-
-#[allow(unused)]
-const ICON: &[u8; 1676] = include_bytes!("../assets/matrix-logo.svg");
+use std::sync::Arc;
 
 fn main() -> eframe::Result<()> {
+    let icon = eframe::icon_data::from_png_bytes(include_bytes!("../assets/matrix-logo.svg"))
+        .expect("The icon data must be valid");
+
     let mut options = eframe::NativeOptions::default();
     options.viewport = options.viewport.with_app_id("Matrix Calculator");
+    options.viewport.icon = Some(Arc::new(icon));
+
     eframe::run_native(
         "Matrix Transpose",
         options,

@@ -47,7 +47,7 @@ impl eframe::App for MatrixGui {
 
 impl MatrixGui {
     fn show_transposes(&self, ui: &mut egui::Ui) {
-        ui.label("Transpose of matrix A:");
+        ui.colored_label(egui::Color32::GREEN, "Transpose of matrix A:");
 
         match self.app.get_matrix(&self.app.matrix_a) {
             Ok(m) => {
@@ -65,7 +65,7 @@ impl MatrixGui {
                 ui.colored_label(egui::Color32::RED, e);
             }
         }
-        ui.label("Transpose of matrix B:");
+        ui.colored_label(egui::Color32::GREEN, "Transpose of matrix B:");
 
         match self.app.get_matrix(&self.app.matrix_b) {
             Ok(m) => {
@@ -84,7 +84,7 @@ impl MatrixGui {
         }
     }
     fn show_determinants(&self, ui: &mut egui::Ui) {
-        ui.label("Determinant of matrix A:");
+        ui.colored_label(egui::Color32::GREEN, "Determinant of matrix A:");
 
         match self.app.get_matrix(&self.app.matrix_a) {
             Ok(m) => match m.determinant() {
@@ -100,7 +100,7 @@ impl MatrixGui {
             }
         }
 
-        ui.label("Determinant of matrix B:");
+        ui.colored_label(egui::Color32::GREEN, "Determinant of matrix B:");
 
         match self.app.get_matrix(&self.app.matrix_b) {
             Ok(m) => match m.determinant() {
@@ -118,7 +118,7 @@ impl MatrixGui {
     }
 
     fn show_arithmetic_operations(&self, ui: &mut egui::Ui) {
-        ui.label("A + B:");
+        ui.colored_label(egui::Color32::GREEN, "A + B:");
 
         if let (Ok(m_a), Ok(m_b)) = (
             self.app.get_matrix(&self.app.matrix_a),
@@ -135,11 +135,11 @@ impl MatrixGui {
                     }
                 }
                 Err(e) => {
-                    ui.label(e);
+                    ui.colored_label(egui::Color32::RED, e);
                 }
             }
         }
-        ui.label("A - B:");
+        ui.colored_label(egui::Color32::GREEN, "A - B:");
 
         if let (Ok(m_a), Ok(m_b)) = (
             self.app.get_matrix(&self.app.matrix_a),
@@ -156,11 +156,11 @@ impl MatrixGui {
                     }
                 }
                 Err(e) => {
-                    ui.label(e);
+                    ui.colored_label(egui::Color32::RED, e);
                 }
             }
         }
-        ui.label("B - A:");
+        ui.colored_label(egui::Color32::GREEN, "B - A:");
 
         if let (Ok(m_a), Ok(m_b)) = (
             self.app.get_matrix(&self.app.matrix_a),
@@ -177,11 +177,11 @@ impl MatrixGui {
                     }
                 }
                 Err(e) => {
-                    ui.label(e);
+                    ui.colored_label(egui::Color32::RED, e);
                 }
             }
         }
-        ui.label("A x B:");
+        ui.colored_label(egui::Color32::GREEN, "A x B:");
 
         if let (Ok(m_a), Ok(m_b)) = (
             self.app.get_matrix(&self.app.matrix_a),
@@ -198,11 +198,11 @@ impl MatrixGui {
                     }
                 }
                 Err(e) => {
-                    ui.label(e);
+                    ui.colored_label(egui::Color32::RED, e);
                 }
             }
         }
-        ui.label("B x A:");
+        ui.colored_label(egui::Color32::GREEN, "B x A:");
 
         if let (Ok(m_a), Ok(m_b)) = (
             self.app.get_matrix(&self.app.matrix_a),
@@ -219,7 +219,7 @@ impl MatrixGui {
                     }
                 }
                 Err(e) => {
-                    ui.label(e);
+                    ui.colored_label(egui::Color32::RED, e);
                 }
             }
         }

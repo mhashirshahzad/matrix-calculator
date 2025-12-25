@@ -161,22 +161,12 @@ impl Mul for Matrix {
 impl Matrix {
     pub fn determinant(&self) -> Result<f64, &'static str> {
         if self.rows != self.cols {
-            return Err("determinant is only defined for square matrices");
+            return Err("Determinant is only defined for square matrices");
         }
 
         let n = self.rows;
 
-        // Parse strings into f64 matrix
-        let mut a: Vec<Vec<f64>> = self
-            .data
-            .iter()
-            .map(|row| {
-                row.iter()
-                    .map(|s| s.parse::<f64>().map_err(|_| "invalid number"))
-                    .collect::<Result<Vec<_>, _>>()
-            })
-            .collect::<Result<_, _>>()?;
-
+        let mut a: Vec<Vec<f64>> = self.to_f64()?;
         let mut det = 1.0;
 
         for i in 0..n {

@@ -211,7 +211,7 @@ impl Matrix {
     }
 
     pub fn remove_row(&mut self) {
-        if self.rows > 0 {
+        if self.rows > 1 {
             self.data.pop();
             self.rows -= 1;
         }
@@ -225,7 +225,7 @@ impl Matrix {
     }
 
     pub fn remove_col(&mut self) {
-        if self.cols > 0 {
+        if self.cols > 1 {
             for row in &mut self.data {
                 row.pop();
             }

@@ -43,7 +43,6 @@ impl eframe::App for MatrixGui {
                     self.spawn_matrices_ui(ui);
 
                     ui.add_space(20.0);
-                    ui.separator();
                     ui.add_space(12.0);
 
                     // Operations depend on both → below
@@ -121,17 +120,14 @@ impl MatrixGui {
                     }
                 });
 
+                // Determinant
                 if let Ok(m) = self.app.get_matrix(&self.app.matrix_a) {
-                    ui.label(format!("Determinant: {:?}", m.determinant()));
-                    ui.label("Transpose:");
-                    let t = matrix::transpose::transpose(&m);
-                    for row in t.data {
-                        ui.horizontal(|ui| {
-                            for v in row {
-                                ui.label(format!("{v}"));
-                            }
-                        });
-                    }
+                    ui.group(|ui| {
+                        ui.label(format!("Determinant: {:?}", m.determinant()));
+                        // Transpose
+                        let t = matrix::transpose::transpose(&m);
+                        Self::render_matrix(ui, "Transpose", &t);
+                    });
                 }
             });
 
@@ -165,17 +161,14 @@ impl MatrixGui {
                     }
                 });
 
+                // Determinant
                 if let Ok(m) = self.app.get_matrix(&self.app.matrix_b) {
-                    ui.label(format!("Determinant: {:?}", m.determinant()));
-                    ui.label("Transpose:");
-                    let t = matrix::transpose::transpose(&m);
-                    for row in t.data {
-                        ui.horizontal(|ui| {
-                            for v in row {
-                                ui.label(format!("{v}"));
-                            }
-                        });
-                    }
+                    ui.group(|ui| {
+                        ui.label(format!("Determinant: {:?}", m.determinant()));
+                        // Transpose
+                        let t = matrix::transpose::transpose(&m);
+                        Self::render_matrix(ui, "Transpose", &t);
+                    });
                 }
             });
         });

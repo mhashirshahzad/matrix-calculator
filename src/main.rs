@@ -6,7 +6,7 @@ use eframe::egui::{self, Ui};
 use std::sync::Arc;
 
 fn main() -> eframe::Result<()> {
-    let icon = eframe::icon_data::from_png_bytes(include_bytes!("../assets/matrix-logo.svg"))
+    let icon = eframe::icon_data::from_png_bytes(include_bytes!("../assets/matrix-logo.png"))
         .expect("The icon data must be valid");
 
     let mut options = eframe::NativeOptions::default();
@@ -50,179 +50,92 @@ impl eframe::App for MatrixGui {
 
 impl MatrixGui {
     fn show_transposes(&self, ui: &mut egui::Ui) {
-        ui.colored_label(egui::Color32::GREEN, "Transpose of matrix A:");
+        ui.heading("Transposes");
+        ui.separator();
 
         match self.app.get_matrix(&self.app.matrix_a) {
             Ok(m) => {
                 let t = matrix::transpose::transpose(&m);
-
-                for row in t.data {
-                    ui.horizontal(|ui| {
-                        for v in row {
-                            ui.label(format!("{v}"));
-                        }
-                    });
-                }
+                Self::render_matrix(ui, "Transpose of Matrix A", &t);
             }
             Err(e) => {
                 ui.colored_label(egui::Color32::RED, e);
             }
         }
-        ui.colored_label(egui::Color32::GREEN, "Transpose of matrix B:");
+
+        ui.add_space(12.0);
 
         match self.app.get_matrix(&self.app.matrix_b) {
             Ok(m) => {
                 let t = matrix::transpose::transpose(&m);
-                for row in t.data {
-                    ui.horizontal(|ui| {
-                        for v in row {
-                            ui.label(format!("{v}"));
-                        }
-                    });
-                }
+                Self::render_matrix(ui, "Transpose of Matrix B", &t);
             }
             Err(e) => {
                 ui.colored_label(egui::Color32::RED, e);
             }
         }
     }
+
     fn show_determinants(&self, ui: &mut egui::Ui) {
-        ui.colored_label(egui::Color32::GREEN, "Determinant of matrix A:");
+        use egui::RichText;
 
-        match self.app.get_matrix(&self.app.matrix_a) {
-            Ok(m) => match m.determinant() {
-                Ok(det) => {
-                    ui.label(format!("{det}"));
-                }
+        ui.heading("Determinants");
+        ui.separator();
+
+        for (label, matrix) in [
+            ("Matrix A", &self.app.matrix_a),
+            ("Matrix B", &self.app.matrix_b),
+        ] {
+            match self.app.get_matrix(matrix) {
+                Ok(m) => match m.determinant() {
+                    Ok(det) => {
+                        ui.label(
+                            RichText::new(format!("{label}: {det}"))
+                                .monospace()
+                                .size(15.0),
+                        );
+                    }
+                    Err(e) => {
+                        ui.colored_label(egui::Color32::RED, e);
+                    }
+                },
                 Err(e) => {
                     ui.colored_label(egui::Color32::RED, e);
                 }
-            },
-            Err(e) => {
-                ui.colored_label(egui::Color32::RED, e);
-            }
-        }
-
-        ui.colored_label(egui::Color32::GREEN, "Determinant of matrix B:");
-
-        match self.app.get_matrix(&self.app.matrix_b) {
-            Ok(m) => match m.determinant() {
-                Ok(det) => {
-                    ui.label(format!("{det}"));
-                }
-                Err(e) => {
-                    ui.colored_label(egui::Color32::RED, e);
-                }
-            },
-            Err(e) => {
-                ui.colored_label(egui::Color32::RED, e);
             }
         }
     }
 
     fn show_arithmetic_operations(&self, ui: &mut egui::Ui) {
-        ui.colored_label(egui::Color32::GREEN, "A + B:");
+        ui.heading("Arithmetic");
+        ui.separator();
 
-        if let (Ok(m_a), Ok(m_b)) = (
-            self.app.get_matrix(&self.app.matrix_a),
-            self.app.get_matrix(&self.app.matrix_b),
-        ) {
-            match m_a + m_b {
-                Ok(m_r) => {
-                    for row in &m_r.data {
-                        ui.horizontal(|ui| {
-                            for v in row {
-                                ui.label(v);
-                            }
-                        });
-                    }
-                }
-                Err(e) => {
-                    ui.colored_label(egui::Color32::RED, e);
-                }
-            }
-        }
-        ui.colored_label(egui::Color32::GREEN, "A - B:");
+        let a = self.app.get_matrix(&self.app.matrix_a);
+        let b = self.app.get_matrix(&self.app.matrix_b);
 
-        if let (Ok(m_a), Ok(m_b)) = (
-            self.app.get_matrix(&self.app.matrix_a),
-            self.app.get_matrix(&self.app.matrix_b),
-        ) {
-            match m_a - m_b {
-                Ok(m_r) => {
-                    for row in &m_r.data {
-                        ui.horizontal(|ui| {
-                            for v in row {
-                                ui.label(v);
-                            }
-                        });
+        let ops: &[(
+            &str,
+            fn(
+                matrix::types::Matrix,
+                matrix::types::Matrix,
+            ) -> Result<matrix::types::Matrix, &'static str>,
+        )] = &[
+            ("A + B", |x, y| x + y),
+            ("A - B", |x, y| x - y),
+            ("B - A", |x, y| y - x),
+            ("A × B", |x, y| x * y),
+            ("B × A", |x, y| y * x),
+        ];
+        if let (Ok(a), Ok(b)) = (a, b) {
+            for (label, op) in ops {
+                match op(a.clone(), b.clone()) {
+                    Ok(m) => {
+                        Self::render_matrix(ui, label, &m);
+                        ui.add_space(10.0);
                     }
-                }
-                Err(e) => {
-                    ui.colored_label(egui::Color32::RED, e);
-                }
-            }
-        }
-        ui.colored_label(egui::Color32::GREEN, "B - A:");
-
-        if let (Ok(m_a), Ok(m_b)) = (
-            self.app.get_matrix(&self.app.matrix_a),
-            self.app.get_matrix(&self.app.matrix_b),
-        ) {
-            match m_b - m_a {
-                Ok(m_r) => {
-                    for row in &m_r.data {
-                        ui.horizontal(|ui| {
-                            for v in row {
-                                ui.label(v);
-                            }
-                        });
+                    Err(e) => {
+                        ui.colored_label(egui::Color32::RED, e);
                     }
-                }
-                Err(e) => {
-                    ui.colored_label(egui::Color32::RED, e);
-                }
-            }
-        }
-        ui.colored_label(egui::Color32::GREEN, "A x B:");
-
-        if let (Ok(m_a), Ok(m_b)) = (
-            self.app.get_matrix(&self.app.matrix_a),
-            self.app.get_matrix(&self.app.matrix_b),
-        ) {
-            match m_a * m_b {
-                Ok(m_r) => {
-                    for row in &m_r.data {
-                        ui.horizontal(|ui| {
-                            for v in row {
-                                ui.label(v);
-                            }
-                        });
-                    }
-                }
-                Err(e) => {
-                    ui.colored_label(egui::Color32::RED, e);
-                }
-            }
-        }
-        ui.colored_label(egui::Color32::GREEN, "B x A:");
-
-        if let (Ok(m_a), Ok(m_b)) = (
-            self.app.get_matrix(&self.app.matrix_a),
-            self.app.get_matrix(&self.app.matrix_b),
-        ) {
-            match m_b * m_a {
-                Ok(m_r) => {
-                    for row in &m_r.data {
-                        ui.horizontal(|ui| {
-                            for v in row {
-                                ui.label(v);
-                            }
-                        });
-                    }
-                }
-                Err(e) => {
-                    ui.colored_label(egui::Color32::RED, e);
                 }
             }
         }
@@ -268,17 +181,44 @@ impl MatrixGui {
     }
 
     pub fn spawn_matrices_ui(&mut self, ui: &mut Ui) {
-        // Scoped borrows to satisfy Rust
-        {
-            let matrix_a = &mut self.app.matrix_a;
-            Self::edit_matrix_ui(ui, "Matrix A:", matrix_a);
-        }
+        egui::Frame::group(ui.style())
+            .inner_margin(10.0)
+            .show(ui, |ui| {
+                ui.heading("Matrix A");
+                Self::edit_matrix_ui(ui, "", &mut self.app.matrix_a);
+            });
 
-        ui.separator();
+        ui.add_space(16.0);
 
-        {
-            let matrix_b = &mut self.app.matrix_b;
-            Self::edit_matrix_ui(ui, "Matrix B:", matrix_b);
-        }
+        egui::Frame::group(ui.style())
+            .inner_margin(10.0)
+            .show(ui, |ui| {
+                ui.heading("Matrix B");
+                Self::edit_matrix_ui(ui, "", &mut self.app.matrix_b);
+            });
+    }
+
+    fn render_matrix(ui: &mut egui::Ui, title: &str, matrix: &matrix::types::Matrix) {
+        use egui::{Frame, RichText};
+
+        Frame::group(ui.style())
+            .inner_margin(egui::Margin::same(8))
+            .show(ui, |ui| {
+                ui.label(RichText::new(title).strong().size(16.0));
+
+                ui.add_space(6.0);
+
+                egui::Grid::new(title)
+                    .spacing([12.0, 8.0])
+                    .striped(true)
+                    .show(ui, |ui| {
+                        for row in &matrix.data {
+                            for cell in row {
+                                ui.label(cell);
+                            }
+                            ui.end_row();
+                        }
+                    });
+            });
     }
 }

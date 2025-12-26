@@ -203,3 +203,33 @@ impl Matrix {
         Ok(det)
     }
 }
+
+impl Matrix {
+    pub fn add_row(&mut self) {
+        self.data.push(vec!["0".to_string(); self.cols]);
+        self.rows += 1;
+    }
+
+    pub fn remove_row(&mut self) {
+        if self.rows > 0 {
+            self.data.pop();
+            self.rows -= 1;
+        }
+    }
+
+    pub fn add_col(&mut self) {
+        for row in &mut self.data {
+            row.push("0".to_string());
+        }
+        self.cols += 1;
+    }
+
+    pub fn remove_col(&mut self) {
+        if self.cols > 0 {
+            for row in &mut self.data {
+                row.pop();
+            }
+            self.cols -= 1;
+        }
+    }
+}

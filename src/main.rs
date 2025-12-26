@@ -37,75 +37,23 @@ impl eframe::App for MatrixGui {
                 .auto_shrink([false; 2])
                 .show(ui, |ui| {
                     ui.heading("Matrix Editor");
-                    self.spawn_matrices_ui(ui);
-                    ui.separator();
+                    ui.add_space(12.0);
 
-                    self.show_transposes(ui);
+                    // A | B side-by-side with outputs
+                    self.spawn_matrices_ui(ui);
+
+                    ui.add_space(20.0);
+                    ui.separator();
+                    ui.add_space(12.0);
+
+                    // Operations depend on both → below
                     self.show_arithmetic_operations(ui);
-                    self.show_determinants(ui);
                 });
         });
     }
 }
 
 impl MatrixGui {
-    fn show_transposes(&self, ui: &mut egui::Ui) {
-        ui.heading("Transposes");
-        ui.separator();
-
-        match self.app.get_matrix(&self.app.matrix_a) {
-            Ok(m) => {
-                let t = matrix::transpose::transpose(&m);
-                Self::render_matrix(ui, "Transpose of Matrix A", &t);
-            }
-            Err(e) => {
-                ui.colored_label(egui::Color32::RED, e);
-            }
-        }
-
-        ui.add_space(12.0);
-
-        match self.app.get_matrix(&self.app.matrix_b) {
-            Ok(m) => {
-                let t = matrix::transpose::transpose(&m);
-                Self::render_matrix(ui, "Transpose of Matrix B", &t);
-            }
-            Err(e) => {
-                ui.colored_label(egui::Color32::RED, e);
-            }
-        }
-    }
-
-    fn show_determinants(&self, ui: &mut egui::Ui) {
-        use egui::RichText;
-
-        ui.heading("Determinants");
-        ui.separator();
-
-        for (label, matrix) in [
-            ("Matrix A", &self.app.matrix_a),
-            ("Matrix B", &self.app.matrix_b),
-        ] {
-            match self.app.get_matrix(matrix) {
-                Ok(m) => match m.determinant() {
-                    Ok(det) => {
-                        ui.label(
-                            RichText::new(format!("{label}: {det}"))
-                                .monospace()
-                                .size(15.0),
-                        );
-                    }
-                    Err(e) => {
-                        ui.colored_label(egui::Color32::RED, e);
-                    }
-                },
-                Err(e) => {
-                    ui.colored_label(egui::Color32::RED, e);
-                }
-            }
-        }
-    }
-
     fn show_arithmetic_operations(&self, ui: &mut egui::Ui) {
         ui.heading("Arithmetic");
         ui.separator();
@@ -141,80 +89,128 @@ impl MatrixGui {
         }
     }
 
-    fn edit_matrix_ui(ui: &mut Ui, label: &str, matrix: &mut matrix::types::Matrix) {
-        ui.label(label);
-
+    pub fn spawn_matrices_ui(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            if ui.button("+ Row").clicked() {
-                matrix.rows += 1;
-                matrix.data.push(vec!["0".into(); matrix.cols]);
-            }
-            if ui.button("+ Col").clicked() {
-                matrix.cols += 1;
-                for row in &mut matrix.data {
-                    row.push("0".into());
-                }
-            }
-            if ui.button("- Row").clicked() {
-                if matrix.rows > 1 {
-                    matrix.rows -= 1;
-                    matrix.data.pop();
-                }
-            }
-            if ui.button("- Col").clicked() {
-                if matrix.cols > 1 {
-                    matrix.cols -= 1;
-                    for row in &mut matrix.data {
-                        row.pop();
+            // ==== Matrix A Editor + Operations ====
+            ui.vertical(|ui| {
+                ui.group(|ui| {
+                    ui.horizontal(|ui| {
+                        ui.label("Matrix A");
+                        if ui.button("+ Row").clicked() {
+                            self.app.matrix_a.add_row();
+                        }
+                        if ui.button("- Row").clicked() {
+                            self.app.matrix_a.remove_row();
+                        }
+                        if ui.button("+ Col").clicked() {
+                            self.app.matrix_a.add_col();
+                        }
+                        if ui.button("- Col").clicked() {
+                            self.app.matrix_a.remove_col();
+                        }
+                    });
+
+                    // Matrix editor
+                    for i in 0..self.app.matrix_a.rows {
+                        ui.horizontal(|ui| {
+                            for j in 0..self.app.matrix_a.cols {
+                                let cell = &mut self.app.matrix_a.data[i][j];
+                                ui.text_edit_singleline(cell);
+                            }
+                        });
+                    }
+                });
+
+                if let Ok(m) = self.app.get_matrix(&self.app.matrix_a) {
+                    ui.label(format!("Determinant: {:?}", m.determinant()));
+                    ui.label("Transpose:");
+                    let t = matrix::transpose::transpose(&m);
+                    for row in t.data {
+                        ui.horizontal(|ui| {
+                            for v in row {
+                                ui.label(format!("{v}"));
+                            }
+                        });
                     }
                 }
-            }
-        });
+            });
 
-        for i in 0..matrix.rows {
-            ui.horizontal(|ui| {
-                for j in 0..matrix.cols {
-                    ui.text_edit_singleline(&mut matrix.data[i][j]);
+            // ==== Matrix B Editor + Operations ====
+            ui.vertical(|ui| {
+                ui.group(|ui| {
+                    ui.horizontal(|ui| {
+                        ui.label("Matrix B");
+                        if ui.button("+ Row").clicked() {
+                            self.app.matrix_b.add_row();
+                        }
+                        if ui.button("- Row").clicked() {
+                            self.app.matrix_b.remove_row();
+                        }
+                        if ui.button("+ Col").clicked() {
+                            self.app.matrix_b.add_col();
+                        }
+                        if ui.button("- Col").clicked() {
+                            self.app.matrix_b.remove_col();
+                        }
+                    });
+
+                    // Matrix editor
+                    for i in 0..self.app.matrix_b.rows {
+                        ui.horizontal(|ui| {
+                            for j in 0..self.app.matrix_b.cols {
+                                let cell = &mut self.app.matrix_b.data[i][j];
+                                ui.text_edit_singleline(cell);
+                            }
+                        });
+                    }
+                });
+
+                if let Ok(m) = self.app.get_matrix(&self.app.matrix_b) {
+                    ui.label(format!("Determinant: {:?}", m.determinant()));
+                    ui.label("Transpose:");
+                    let t = matrix::transpose::transpose(&m);
+                    for row in t.data {
+                        ui.horizontal(|ui| {
+                            for v in row {
+                                ui.label(format!("{v}"));
+                            }
+                        });
+                    }
                 }
             });
-        }
-    }
-
-    pub fn spawn_matrices_ui(&mut self, ui: &mut Ui) {
-        egui::Frame::group(ui.style())
-            .inner_margin(10.0)
-            .show(ui, |ui| {
-                ui.heading("Matrix A");
-                Self::edit_matrix_ui(ui, "", &mut self.app.matrix_a);
-            });
-
-        ui.add_space(16.0);
-
-        egui::Frame::group(ui.style())
-            .inner_margin(10.0)
-            .show(ui, |ui| {
-                ui.heading("Matrix B");
-                Self::edit_matrix_ui(ui, "", &mut self.app.matrix_b);
-            });
+        });
     }
 
     fn render_matrix(ui: &mut egui::Ui, title: &str, matrix: &matrix::types::Matrix) {
         use egui::{Frame, RichText};
 
-        Frame::group(ui.style())
-            .inner_margin(egui::Margin::same(8))
+        Frame::new()
+            .fill(ui.visuals().extreme_bg_color)
+            .corner_radius(egui::CornerRadius::same(8))
+            .inner_margin(egui::Margin::symmetric(12, 10))
+            .stroke(egui::Stroke::new(
+                1.0,
+                ui.visuals().widgets.noninteractive.bg_stroke.color,
+            ))
             .show(ui, |ui| {
                 ui.label(RichText::new(title).strong().size(16.0));
 
-                ui.add_space(6.0);
+                ui.add_space(8.0);
 
-                egui::Grid::new(title)
-                    .spacing([12.0, 8.0])
-                    .striped(true)
+                egui::Grid::new(&format!("transpose-{}", title))
+                    .spacing([16.0, 10.0])
                     .show(ui, |ui| {
                         for row in &matrix.data {
                             for cell in row {
-                                ui.label(cell);
+                                ui.allocate_ui_with_layout(
+                                    egui::vec2(48.0, 20.0),
+                                    egui::Layout::centered_and_justified(
+                                        egui::Direction::LeftToRight,
+                                    ),
+                                    |ui| {
+                                        ui.label(egui::RichText::new(cell).monospace().size(14.0));
+                                    },
+                                );
                             }
                             ui.end_row();
                         }
